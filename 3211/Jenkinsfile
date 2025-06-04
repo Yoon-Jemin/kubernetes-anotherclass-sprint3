@@ -55,9 +55,15 @@ pipeline {
 
         stage('컨테이너 업로드') {
             steps {
-                // DockerHub로 이미지 업로드
-                script{
-                    sh "docker push ${DOCKERHUB_USERNAME}/api-tester:${APP_VERSION}"
+                // DockerHub 로그인 후 이미지 업로드
+                withCredentials([usernamePassword(credentialsId: 'docker_password', 
+                                                 usernameVariable: 'DOCKER_USER', 
+                                                 passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKERHUB_USERNAME}/api-tester:${APP_VERSION}
+                        docker logout
+                    '''
                 }
             }
         }
